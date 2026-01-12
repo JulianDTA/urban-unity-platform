@@ -15,6 +15,7 @@ import Chat from "./pages/Chat";
 import ManagePayments from "./pages/admin/ManagePayments";
 import ManageTickets from "./pages/admin/ManageTickets";
 import ManageUsers from "./pages/admin/ManageUsers";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/admin/payments" element={<ManagePayments />} />
             <Route path="/admin/tickets" element={<ManageTickets />} />
             <Route path="/admin/users" element={<ManageUsers />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

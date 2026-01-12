@@ -9,12 +9,12 @@ import {
   Users,
   LogOut,
   Building2,
-  Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -125,6 +125,16 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               {user?.email}
             </p>
           </div>
+          <Link
+            to="/profile"
+            className={cn(
+              'nav-item mb-1',
+              location.pathname === '/profile' && 'nav-item-active'
+            )}
+          >
+            <Settings className="w-5 h-5" />
+            <span className="font-medium">Profile Settings</span>
+          </Link>
           <button
             onClick={signOut}
             className="nav-item w-full text-destructive/80 hover:text-destructive hover:bg-destructive/10"
