@@ -24,11 +24,16 @@ interface Resource {
 interface Reservation {
   id: string;
   resource_id: string;
+  user_id: string;
   start_time: string;
   end_time: string;
   status: string;
   notes: string | null;
   resources?: Resource;
+  profiles?: {
+    full_name: string | null;
+    apartment_number: string | null;
+  };
 }
 
 const resourceIcons: Record<string, React.ReactNode> = {
@@ -49,6 +54,7 @@ const Reservations = () => {
   const { user } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [allReservations, setAllReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,19 +69,41 @@ const Reservations = () => {
   const fetchData = async () => {
     if (!user) return;
 
-    const [resourcesRes, reservationsRes] = await Promise.all([
+    const [resourcesRes, myReservationsRes, allReservationsRes] = await Promise.all([
       supabase.from('resources').select('*'),
       supabase
         .from('reservations')
         .select('*, resources(*)')
         .eq('user_id', user.id)
-        .eq('status', 'confirmed')
+        .in('status', ['pending', 'confirmed'])
+        .gte('start_time', new Date().toISOString())
+        .order('start_time', { ascending: true }),
+      supabase
+        .from('reservations')
+        .select('*, resources(*)')
+        .in('status', ['pending', 'confirmed'])
         .gte('start_time', new Date().toISOString())
         .order('start_time', { ascending: true }),
     ]);
 
     if (resourcesRes.data) setResources(resourcesRes.data);
-    if (reservationsRes.data) setReservations(reservationsRes.data);
+    if (myReservationsRes.data) setReservations(myReservationsRes.data as Reservation[]);
+    
+    // Fetch profiles for all reservations
+    if (allReservationsRes.data) {
+      const userIds = [...new Set(allReservationsRes.data.map(r => r.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, apartment_number')
+        .in('id', userIds);
+      
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const reservationsWithProfiles = allReservationsRes.data.map(r => ({
+        ...r,
+        profiles: profileMap.get(r.user_id) || null
+      }));
+      setAllReservations(reservationsWithProfiles as Reservation[]);
+    }
     setLoading(false);
   };
 
@@ -124,13 +152,14 @@ const Reservations = () => {
       user_id: user?.id,
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
+      status: 'pending',
       notes: notes || null,
     });
 
     if (error) {
       toast.error('Failed to create reservation');
     } else {
-      toast.success('Reservation created successfully');
+      toast.success('Reservation submitted for approval');
       fetchData();
       setIsDialogOpen(false);
       resetForm();
@@ -306,8 +335,8 @@ const Reservations = () => {
         {/* My Reservations */}
         <Card className="card-elevated">
           <CardHeader>
-            <CardTitle>My Upcoming Reservations</CardTitle>
-            <CardDescription>Your confirmed bookings</CardDescription>
+            <CardTitle>My Reservations</CardTitle>
+            <CardDescription>Your pending and confirmed bookings</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -344,7 +373,9 @@ const Reservations = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <StatusBadge status="success">Confirmed</StatusBadge>
+                      <StatusBadge status={reservation.status === 'confirmed' ? 'success' : 'warning'}>
+                        {reservation.status === 'confirmed' ? 'Confirmed' : 'Pending Approval'}
+                      </StatusBadge>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -354,6 +385,57 @@ const Reservations = () => {
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* All Reservations */}
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle>All Community Reservations</CardTitle>
+            <CardDescription>View all bookings from residents</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : allReservations.length === 0 ? (
+              <div className="text-center py-12">
+                <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold text-lg">No reservations yet</h3>
+                <p className="text-muted-foreground">Be the first to book a space!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {allReservations.map((reservation) => (
+                  <div
+                    key={reservation.id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                        {resourceIcons[reservation.resources?.name || ''] || <Building className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">{reservation.resources?.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(reservation.start_time), 'MMM d, yyyy')} •{' '}
+                          {format(new Date(reservation.start_time), 'h:mm a')} -{' '}
+                          {format(new Date(reservation.end_time), 'h:mm a')}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Booked by: {reservation.profiles?.full_name || 'Unknown'} 
+                          {reservation.profiles?.apartment_number && ` (Apt ${reservation.profiles.apartment_number})`}
+                        </p>
+                      </div>
+                    </div>
+                    <StatusBadge status={reservation.status === 'confirmed' ? 'success' : 'warning'}>
+                      {reservation.status === 'confirmed' ? 'Confirmed' : 'Pending'}
+                    </StatusBadge>
                   </div>
                 ))}
               </div>

@@ -45,7 +45,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       return [
         ...baseItems,
         { icon: CreditCard, label: 'Manage Payments', path: '/admin/payments' },
-        { icon: Calendar, label: 'Reservations', path: '/reservations' },
+        { icon: Calendar, label: 'Manage Reservations', path: '/admin/reservations' },
         { icon: MessageSquare, label: 'Manage Tickets', path: '/admin/tickets' },
         { icon: MessageCircle, label: 'Chat', path: '/chat' },
         ...(isSuperAdmin ? [{ icon: Users, label: 'User Management', path: '/admin/users' }] : []),
