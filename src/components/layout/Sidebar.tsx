@@ -10,7 +10,8 @@ import {
   LogOut,
   Building2,
   X,
-  Settings
+  Settings,
+  DollarSign
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         ...baseItems,
         { icon: CreditCard, label: 'Manage Payments', path: '/admin/payments' },
         { icon: Calendar, label: 'Manage Reservations', path: '/admin/reservations' },
+        { icon: DollarSign, label: 'Resource Pricing', path: '/admin/resources' },
         { icon: MessageSquare, label: 'Manage Tickets', path: '/admin/tickets' },
         { icon: MessageCircle, label: 'Chat', path: '/chat' },
         ...(isSuperAdmin ? [{ icon: Users, label: 'User Management', path: '/admin/users' }] : []),
