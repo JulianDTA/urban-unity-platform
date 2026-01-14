@@ -140,6 +140,8 @@ export type Database = {
           end_time: string
           id: string
           notes: string | null
+          price: number | null
+          rejection_reason: string | null
           resource_id: string
           start_time: string
           status: string
@@ -150,6 +152,8 @@ export type Database = {
           end_time: string
           id?: string
           notes?: string | null
+          price?: number | null
+          rejection_reason?: string | null
           resource_id: string
           start_time: string
           status?: string
@@ -160,6 +164,8 @@ export type Database = {
           end_time?: string
           id?: string
           notes?: string | null
+          price?: number | null
+          rejection_reason?: string | null
           resource_id?: string
           start_time?: string
           status?: string
@@ -179,29 +185,35 @@ export type Database = {
         Row: {
           available_from: string | null
           available_until: string | null
+          base_price: number | null
           created_at: string
           description: string | null
           id: string
           max_hours_per_booking: number | null
           name: string
+          price_per_hour: number | null
         }
         Insert: {
           available_from?: string | null
           available_until?: string | null
+          base_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
           max_hours_per_booking?: number | null
           name: string
+          price_per_hour?: number | null
         }
         Update: {
           available_from?: string | null
           available_until?: string | null
+          base_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
           max_hours_per_booking?: number | null
           name?: string
+          price_per_hour?: number | null
         }
         Relationships: []
       }

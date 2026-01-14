@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CalendarDays, Loader2, TreesIcon, Building, Car, Check, X, Calendar as CalendarIcon } from 'lucide-react';
+import { CalendarDays, Loader2, TreesIcon, Building, Car, Check, X, Calendar as CalendarIcon, DollarSign } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -27,7 +27,8 @@ interface Reservation {
   end_time: string;
   status: string;
   notes: string | null;
-  admin_notes?: string | null;
+  price: number | null;
+  rejection_reason: string | null;
   resources?: Resource;
   profiles?: {
     full_name: string | null;
@@ -84,6 +85,26 @@ const ManageReservations = () => {
 
   useEffect(() => {
     fetchReservations();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('admin-reservations-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reservations'
+        },
+        () => {
+          fetchReservations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const sendNotification = async (reservation: Reservation, action: 'approved' | 'rejected', reason?: string) => {
@@ -174,7 +195,15 @@ const ManageReservations = () => {
           {resourceIcons[reservation.resources?.name || ''] || <Building className="w-5 h-5" />}
         </div>
         <div>
-          <h4 className="font-semibold">{reservation.resources?.name}</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold">{reservation.resources?.name}</h4>
+            {reservation.price !== null && reservation.price > 0 && (
+              <span className="text-sm font-medium text-primary flex items-center gap-0.5">
+                <DollarSign className="w-3 h-3" />
+                {reservation.price.toFixed(2)}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
             {format(new Date(reservation.start_time), 'MMM d, yyyy')} •{' '}
             {format(new Date(reservation.start_time), 'h:mm a')} -{' '}

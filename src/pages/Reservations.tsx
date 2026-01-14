@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { CalendarDays, Plus, Loader2, TreesIcon, Building, Car, X } from 'lucide-react';
-import { format, addHours, startOfDay, setHours, setMinutes, isBefore } from 'date-fns';
+import { AvailabilityCalendar } from '@/components/reservations/AvailabilityCalendar';
+import { CalendarDays, Plus, Loader2, TreesIcon, Building, Car, X, DollarSign } from 'lucide-react';
+import { format, addHours, setHours, setMinutes, isBefore, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
 
 interface Resource {
@@ -19,6 +19,8 @@ interface Resource {
   name: string;
   description: string | null;
   max_hours_per_booking: number | null;
+  base_price: number | null;
+  price_per_hour: number | null;
 }
 
 interface Reservation {
@@ -29,6 +31,8 @@ interface Reservation {
   end_time: string;
   status: string;
   notes: string | null;
+  price: number | null;
+  rejection_reason: string | null;
   resources?: Resource;
   profiles?: {
     full_name: string | null;
@@ -42,14 +46,6 @@ const resourceIcons: Record<string, React.ReactNode> = {
   'Visitor Parking': <Car className="w-5 h-5" />,
 };
 
-const timeSlots = Array.from({ length: 14 }, (_, i) => {
-  const hour = 8 + i;
-  return {
-    value: hour.toString(),
-    label: format(setMinutes(setHours(new Date(), hour), 0), 'h:mm a'),
-  };
-});
-
 const Reservations = () => {
   const { user } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
@@ -60,11 +56,25 @@ const Reservations = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form state
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedResource, setSelectedResource] = useState('');
   const [selectedStartTime, setSelectedStartTime] = useState('');
   const [selectedDuration, setSelectedDuration] = useState('2');
   const [notes, setNotes] = useState('');
+
+  // Get selected resource details
+  const selectedResourceData = resources.find(r => r.id === selectedResource);
+  
+  // Calculate price
+  const calculatePrice = () => {
+    if (!selectedResourceData) return 0;
+    const basePrice = selectedResourceData.base_price || 0;
+    const hourlyRate = selectedResourceData.price_per_hour || 0;
+    const duration = parseInt(selectedDuration) || 0;
+    return basePrice + (hourlyRate * duration);
+  };
+
+  const estimatedPrice = calculatePrice();
 
   const fetchData = async () => {
     if (!user) return;
@@ -109,6 +119,26 @@ const Reservations = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('reservations-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reservations'
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const checkAvailability = async (resourceId: string, startTime: Date, endTime: Date) => {
@@ -154,6 +184,7 @@ const Reservations = () => {
       end_time: endTime.toISOString(),
       status: 'pending',
       notes: notes || null,
+      price: estimatedPrice,
     });
 
     if (error) {
@@ -185,11 +216,21 @@ const Reservations = () => {
   };
 
   const resetForm = () => {
-    setSelectedDate(new Date());
+    setSelectedDate(undefined);
     setSelectedResource('');
     setSelectedStartTime('');
     setSelectedDuration('2');
     setNotes('');
+  };
+
+  const handleSlotSelect = (date: Date, hour: number) => {
+    setSelectedDate(date);
+    setSelectedStartTime(hour.toString());
+  };
+
+  const formatPrice = (price: number | null) => {
+    if (price === null || price === 0) return 'Free';
+    return `$${price.toFixed(2)}`;
   };
 
   return (
@@ -240,47 +281,39 @@ const Reservations = () => {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Date *</Label>
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={(date) => isBefore(startOfDay(date), startOfDay(new Date()))}
-                    className="rounded-md border"
+                {/* Availability Calendar */}
+                {selectedResource && (
+                  <AvailabilityCalendar
+                    resourceId={selectedResource}
+                    resourceName={selectedResourceData?.name || ''}
+                    onSelectSlot={handleSlotSelect}
+                    selectedDate={selectedDate}
+                    selectedHour={selectedStartTime ? parseInt(selectedStartTime) : undefined}
                   />
-                </div>
+                )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Start Time *</Label>
-                    <Select value={selectedStartTime} onValueChange={setSelectedStartTime}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeSlots.map((slot) => (
-                          <SelectItem key={slot.value} value={slot.value}>
-                            {slot.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                {/* Selected slot display */}
+                {selectedDate && selectedStartTime && (
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <p className="text-sm font-medium">
+                      Selected: {format(selectedDate, 'EEEE, MMMM d, yyyy')} at {format(setHours(new Date(), parseInt(selectedStartTime)), 'h:mm a')}
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Duration *</Label>
-                    <Select value={selectedDuration} onValueChange={setSelectedDuration}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 hour</SelectItem>
-                        <SelectItem value="2">2 hours</SelectItem>
-                        <SelectItem value="3">3 hours</SelectItem>
-                        <SelectItem value="4">4 hours</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Duration *</Label>
+                  <Select value={selectedDuration} onValueChange={setSelectedDuration}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 hour</SelectItem>
+                      <SelectItem value="2">2 hours</SelectItem>
+                      <SelectItem value="3">3 hours</SelectItem>
+                      <SelectItem value="4">4 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -289,9 +322,27 @@ const Reservations = () => {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any additional details..."
-                    rows={3}
+                    rows={2}
                   />
                 </div>
+
+                {/* Price Display */}
+                {selectedResource && (
+                  <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Estimated Price</span>
+                      <span className="text-lg font-bold flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" />
+                        {formatPrice(estimatedPrice)}
+                      </span>
+                    </div>
+                    {selectedResourceData && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Base: {formatPrice(selectedResourceData.base_price)} + {formatPrice(selectedResourceData.price_per_hour)}/hr × {selectedDuration}hr
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
