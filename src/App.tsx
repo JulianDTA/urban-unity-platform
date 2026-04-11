@@ -17,6 +17,8 @@ import ManageTickets from "./pages/admin/ManageTickets";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageReservations from "./pages/admin/ManageReservations";
 import ManageResources from "./pages/admin/ManageResources";
+import ManageDues from "./pages/admin/ManageDues";
+import Dues from "./pages/Dues";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/admin/users" element={<ManageUsers />} />
             <Route path="/admin/reservations" element={<ManageReservations />} />
             <Route path="/admin/resources" element={<ManageResources />} />
+            <Route path="/admin/dues" element={<ManageDues />} />
+            <Route path="/dues" element={<Dues />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
