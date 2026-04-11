@@ -11,7 +11,8 @@ import {
   Building2,
   X,
   Settings,
-  DollarSign
+  DollarSign,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       return [
         ...baseItems,
         { icon: CreditCard, label: 'My Payments', path: '/payments' },
+        { icon: Receipt, label: 'Mis Alícuotas', path: '/dues' },
         { icon: Calendar, label: 'Reservations', path: '/reservations' },
         { icon: MessageSquare, label: 'Tickets', path: '/tickets' },
         { icon: MessageCircle, label: 'Chat', path: '/chat' },
@@ -46,6 +48,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       return [
         ...baseItems,
         { icon: CreditCard, label: 'Manage Payments', path: '/admin/payments' },
+        { icon: Receipt, label: 'Gestión Alícuotas', path: '/admin/dues' },
         { icon: Calendar, label: 'Manage Reservations', path: '/admin/reservations' },
         { icon: DollarSign, label: 'Resource Pricing', path: '/admin/resources' },
         { icon: MessageSquare, label: 'Manage Tickets', path: '/admin/tickets' },
