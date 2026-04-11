@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      apartment_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          monthly_fee: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          monthly_fee?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          monthly_fee?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -34,6 +61,56 @@ export type Database = {
           sender_id?: string
         }
         Relationships: []
+      }
+      dues: {
+        Row: {
+          amount: number
+          apartment_type_id: string | null
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          amount: number
+          apartment_type_id?: string | null
+          created_at?: string
+          id?: string
+          month: number
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          apartment_type_id?: string | null
+          created_at?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dues_apartment_type_id_fkey"
+            columns: ["apartment_type_id"]
+            isOneToOne: false
+            referencedRelation: "apartment_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       news: {
         Row: {
@@ -107,6 +184,7 @@ export type Database = {
       profiles: {
         Row: {
           apartment_number: string | null
+          apartment_type_id: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -116,6 +194,7 @@ export type Database = {
         }
         Insert: {
           apartment_number?: string | null
+          apartment_type_id?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -125,6 +204,7 @@ export type Database = {
         }
         Update: {
           apartment_number?: string | null
+          apartment_type_id?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -132,7 +212,15 @@ export type Database = {
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_apartment_type_id_fkey"
+            columns: ["apartment_type_id"]
+            isOneToOne: false
+            referencedRelation: "apartment_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reservations: {
         Row: {
