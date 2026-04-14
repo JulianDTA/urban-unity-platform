@@ -149,6 +149,26 @@ const ManageDues = () => {
       }
     }
 
+    // Send notifications to residents
+    for (const resident of residentsWithTypes) {
+      const aptType = apartmentTypes.find(t => t.id === resident.apartment_type_id);
+      if (!aptType) continue;
+      try {
+        await supabase.functions.invoke('send-notification', {
+          body: {
+            type: 'new_dues_generated',
+            recipientEmail: resident.email,
+            recipientName: resident.full_name,
+            month: MONTHS[month - 1],
+            year: String(year),
+            amount: aptType.monthly_fee.toFixed(2),
+          },
+        });
+      } catch (e) {
+        console.error('Failed to send notification to', resident.email, e);
+      }
+    }
+
     setGenerating(false);
     toast.success(`${created} alícuotas generadas, ${skipped} ya existían`);
     setFilterMonth(genMonth);
