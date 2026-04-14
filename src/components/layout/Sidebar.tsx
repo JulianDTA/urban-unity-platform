@@ -12,7 +12,10 @@ import {
   X,
   Settings,
   DollarSign,
-  Receipt
+  Receipt,
+  BarChart3,
+  QrCode,
+  ScanLine
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
