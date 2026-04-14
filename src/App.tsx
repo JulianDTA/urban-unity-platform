@@ -18,7 +18,10 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import ManageReservations from "./pages/admin/ManageReservations";
 import ManageResources from "./pages/admin/ManageResources";
 import ManageDues from "./pages/admin/ManageDues";
+import ReservationReports from "./pages/admin/ReservationReports";
+import ManageAccess from "./pages/admin/ManageAccess";
 import Dues from "./pages/Dues";
+import MyAccess from "./pages/MyAccess";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -46,7 +49,10 @@ const App = () => (
             <Route path="/admin/reservations" element={<ManageReservations />} />
             <Route path="/admin/resources" element={<ManageResources />} />
             <Route path="/admin/dues" element={<ManageDues />} />
+            <Route path="/admin/reports" element={<ReservationReports />} />
+            <Route path="/admin/access" element={<ManageAccess />} />
             <Route path="/dues" element={<Dues />} />
+            <Route path="/my-access" element={<MyAccess />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
