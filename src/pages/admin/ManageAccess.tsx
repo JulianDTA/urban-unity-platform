@@ -149,6 +149,28 @@ const ManageAccess = () => {
     } else {
       const ownerName = codeRecord.type === 'visitor' ? codeRecord.visitor_name : getProfileName(codeRecord.user_id);
       toast.success(`${direction === 'entry' ? 'Entrada' : 'Salida'} registrada: ${ownerName}`);
+
+      // Send notification to resident if the code belongs to one
+      if (codeRecord.user_id) {
+        const profile = profiles.find(p => p.id === codeRecord.user_id);
+        if (profile) {
+          try {
+            await supabase.functions.invoke('send-notification', {
+              body: {
+                type: 'access_registered',
+                recipientEmail: profile.email,
+                recipientName: profile.full_name,
+                accessDirection: direction,
+                accessPersonName: ownerName,
+                accessType: codeRecord.type,
+              },
+            });
+          } catch (e) {
+            console.error('Failed to send access notification:', e);
+          }
+        }
+      }
+
       setScanCode('');
       setScanDialogOpen(false);
       fetchData();
