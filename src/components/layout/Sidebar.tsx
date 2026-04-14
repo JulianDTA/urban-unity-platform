@@ -39,9 +39,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     if (role === 'resident') {
       return [
         ...baseItems,
-        { icon: CreditCard, label: 'My Payments', path: '/payments' },
+        { icon: CreditCard, label: 'Mis Pagos', path: '/payments' },
         { icon: Receipt, label: 'Mis Alícuotas', path: '/dues' },
-        { icon: Calendar, label: 'Reservations', path: '/reservations' },
+        { icon: Calendar, label: 'Reservaciones', path: '/reservations' },
+        { icon: QrCode, label: 'Mi Acceso QR', path: '/my-access' },
         { icon: MessageSquare, label: 'Tickets', path: '/tickets' },
         { icon: MessageCircle, label: 'Chat', path: '/chat' },
       ];
@@ -50,13 +51,15 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     if (isAdmin) {
       return [
         ...baseItems,
-        { icon: CreditCard, label: 'Manage Payments', path: '/admin/payments' },
+        { icon: CreditCard, label: 'Gestión Pagos', path: '/admin/payments' },
         { icon: Receipt, label: 'Gestión Alícuotas', path: '/admin/dues' },
-        { icon: Calendar, label: 'Manage Reservations', path: '/admin/reservations' },
-        { icon: DollarSign, label: 'Resource Pricing', path: '/admin/resources' },
-        { icon: MessageSquare, label: 'Manage Tickets', path: '/admin/tickets' },
+        { icon: Calendar, label: 'Gestión Reservaciones', path: '/admin/reservations' },
+        { icon: BarChart3, label: 'Reportes', path: '/admin/reports' },
+        { icon: DollarSign, label: 'Precios Recursos', path: '/admin/resources' },
+        { icon: ScanLine, label: 'Control Accesos', path: '/admin/access' },
+        { icon: MessageSquare, label: 'Gestión Tickets', path: '/admin/tickets' },
         { icon: MessageCircle, label: 'Chat', path: '/chat' },
-        ...(isSuperAdmin ? [{ icon: Users, label: 'User Management', path: '/admin/users' }] : []),
+        ...(isSuperAdmin ? [{ icon: Users, label: 'Usuarios', path: '/admin/users' }] : []),
       ];
     }
 
