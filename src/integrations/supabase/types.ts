@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          type: string
+          updated_at: string
+          user_id: string | null
+          visitor_document: string | null
+          visitor_name: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+          visitor_document?: string | null
+          visitor_name?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+          visitor_document?: string | null
+          visitor_name?: string | null
+        }
+        Relationships: []
+      }
+      access_logs: {
+        Row: {
+          access_code_id: string
+          created_at: string
+          direction: string
+          id: string
+          scanned_by: string | null
+        }
+        Insert: {
+          access_code_id: string
+          created_at?: string
+          direction: string
+          id?: string
+          scanned_by?: string | null
+        }
+        Update: {
+          access_code_id?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          scanned_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_logs_access_code_id_fkey"
+            columns: ["access_code_id"]
+            isOneToOne: false
+            referencedRelation: "access_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       apartment_types: {
         Row: {
           created_at: string
