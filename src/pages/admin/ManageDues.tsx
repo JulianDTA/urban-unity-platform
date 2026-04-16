@@ -149,7 +149,7 @@ const ManageDues = () => {
       }
     }
 
-    // Send notifications to residents
+    // Send notifications to residents (email + in-app)
     for (const resident of residentsWithTypes) {
       const aptType = apartmentTypes.find(t => t.id === resident.apartment_type_id);
       if (!aptType) continue;
@@ -167,6 +167,14 @@ const ManageDues = () => {
       } catch (e) {
         console.error('Failed to send notification to', resident.email, e);
       }
+      // In-app notification
+      await supabase.from('notifications').insert({
+        user_id: resident.id,
+        title: `Nueva alícuota - ${MONTHS[month - 1]} ${year}`,
+        message: `Se ha generado tu alícuota mensual por $${aptType.monthly_fee.toFixed(2)}.`,
+        type: 'info',
+        link: '/dues',
+      });
     }
 
     setGenerating(false);
