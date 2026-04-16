@@ -168,6 +168,17 @@ const ManageAccess = () => {
           } catch (e) {
             console.error('Failed to send access notification:', e);
           }
+          // In-app notification
+          const dirLabel = direction === 'entry' ? 'Entrada' : 'Salida';
+          await supabase.from('notifications').insert({
+            user_id: codeRecord.user_id,
+            title: `${direction === 'entry' ? '🟢' : '🔴'} ${dirLabel} registrada`,
+            message: codeRecord.type === 'visitor'
+              ? `Visitante: ${ownerName} (${dirLabel.toLowerCase()})`
+              : `Se registró tu ${dirLabel.toLowerCase()} al complejo.`,
+            type: 'info',
+            link: '/my-access',
+          });
         }
       }
 

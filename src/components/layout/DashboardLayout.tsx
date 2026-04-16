@@ -3,6 +3,7 @@ import { Menu } from 'lucide-react';
 import { ThemeProvider } from 'next-themes';
 import Sidebar from './Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationsBell } from '@/components/NotificationsBell';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -27,11 +28,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </button>
             <h1 className="ml-3 font-display font-bold text-lg text-sidebar-foreground">ResidenceHub</h1>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <NotificationsBell />
+            <ThemeToggle />
+          </div>
         </div>
 
-        {/* Desktop theme toggle */}
-        <div className="hidden lg:block fixed top-4 right-4 z-30">
+        {/* Desktop top-right controls */}
+        <div className="hidden lg:flex fixed top-4 right-4 z-30 items-center gap-1">
+          <NotificationsBell />
           <ThemeToggle />
         </div>
 

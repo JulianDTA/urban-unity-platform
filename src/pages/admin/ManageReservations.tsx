@@ -122,6 +122,17 @@ const ManageReservations = () => {
     } catch (error) {
       console.error('Failed to send notification:', error);
     }
+    // In-app notification
+    const isApproved = action === 'approved';
+    await supabase.from('notifications').insert({
+      user_id: reservation.user_id,
+      title: isApproved ? '✅ Reservación aprobada' : '❌ Reservación rechazada',
+      message: isApproved
+        ? `Tu reservación de ${reservation.resources?.name || 'recurso'} ha sido aprobada.`
+        : `Tu reservación fue rechazada.${reason ? ` Motivo: ${reason}` : ''}`,
+      type: isApproved ? 'success' : 'error',
+      link: '/reservations',
+    });
   };
 
   const handleApprove = async (reservation: Reservation) => {
